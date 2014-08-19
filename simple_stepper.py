@@ -4,101 +4,114 @@
 SimpleStepper backend main script.
 """
 
-import os
-import json
+import httplib
 
 import boto.ec2
+import boto.exception
+import tornado.options
 import tornado.web
 import tornado.ioloop
 
-CONFIG_FILE_PATHS = [
-    './config.json',
-    '/etc/SimpleStepper/config.json',
-    '/opt/SimpleStepper/config.json',
-]
 
-CONFIG = {
-    'PORT': 8080,
-    'REGION_NAME': None,
-    'AWS_ACCESS_KEY_ID': None,
-    'AWS_SECRET_ACCESS_KEY': None,
-    'TARGET_SECURITY_GROUP_IDS': list(),
-    'KEEP_SECURITY_GROUP_ELEMENTS': list(),
-}
+# command line options
+tornado.options.define(
+    'port',
+    default=8080,
+    help='Listen port number.'
+)
+tornado.options.define(
+    'region_name',
+    default='us-east-1',
+    help='AWS region name.',
+    group='AWS credential'
+)
+tornado.options.define(
+    'aws_access_key_id',
+    default='',
+    help='AWS access key id.',
+    group='AWS credential'
+)
+tornado.options.define(
+    'aws_secret_access_key',
+    default='',
+    help='AWS secret access key.',
+    group='AWS credential'
+)
+tornado.options.define(
+    'target_security_group_ids',
+    default=list(),
+    help='Target security group ids of "SimpleStepper".'
+)
+tornado.options.define(
+    'keep_security_group_elements',
+    default=list(),
+    help='Specified keeping security group entries.'
+)
 
 
 # handlers
 class SGHandler(tornado.web.RequestHandler):
 
-    def initialize(self):
-        self.region_name = CONFIG['REGION_NAME']
-        self.aws_access_key_id = CONFIG['AWS_ACCESS_KEY_ID']
-        self.aws_secret_access_key = CONFIG['AWS_SECRET_ACCESS_KEY']
-        self.target_security_group_ids = CONFIG['TARGET_SECURITY_GROUP_IDS']
-        self.keep_elements = CONFIG['KEEP_SECURITY_GROUP_ELEMENTS']
+    def initialize(self,
+                   region_name,
+                   aws_access_key_id,
+                   aws_secret_access_key,
+                   target_security_group_ids,
+                   keep_security_group_elements):
+        self.region_name = region_name
+        self.aws_access_key_id = aws_access_key_id
+        self.aws_secret_access_key = aws_secret_access_key
+        self.target_security_group_ids = target_security_group_ids
+        self.keep_security_group_elements = keep_security_group_elements
 
     def get(self):
-        conn = boto.ec2.connect_to_region(
-            region_name=self.region_name,
-            aws_access_key_id=self.aws_access_key_id,
-            aws_secret_access_key=self.aws_secret_access_key
-        )
         result = dict()
-        return conn.get_all_security_groups(
-            group_ids=self.target_security_group_ids
-        )
+        try:
+            conn = boto.ec2.connect_to_region(
+                region_name=self.region_name,
+                aws_access_key_id=self.aws_access_key_id,
+                aws_secret_access_key=self.aws_secret_access_key
+            )
+            response = conn.get_all_security_groups(
+                group_ids=self.target_security_group_ids
+            )
+        except boto.exception.EC2ResponseError as exception:
+            self.set_status(httplib.UNAUTHORIZED)
+            self.write(
+                {
+                    'status_code': self.get_status(),
+                    'message': exception.error_message
+                }
+            )
+        except Exception as error:
+            self.set_status(httplib.INTERNAL_SERVER_ERROR)
+            self.write(
+                {
+                    'status_code': self.get_status(),
+                    'message': error.__str__()
+                }
+            )
+
 
 
 # dispatch URLs
 SIMPLE_STEPPER = tornado.web.Application([
-    (r"/allowAllIPs", SGHandler)
+    (
+        r"/allowAllIPs", SGHandler,
+        {
+            "region_name": tornado.options.options.region_name,
+            "aws_access_key_id": tornado.options.options.aws_access_key_id,
+            "aws_secret_access_key":
+            tornado.options.options.aws_secret_access_key,
+            "target_security_group_ids":
+            tornado.options.options.target_security_group_ids,
+            "keep_security_group_elements":
+            tornado.options.options.keep_security_group_elements,
+        }
+    )
 ])
 
 
-# utilities
-class SimpleStepperException(BaseException):
-    def __init__(self, message):
-        super(SimpleStepperException, self).__init__(message)
-
-
-def validate_config(config):
-    checking_keys = [
-        'region_name',
-        'aws_access_key_id',
-        'aws_secret_access_key',
-        'target_security_group_ids',
-        'keep_security_group_elements',
-    ]
-    for entry in checking_keys:
-        if not entry in [element.lower() for element in config.keys()]:
-            raise SimpleStepperException(
-                '{0} is require parameter in configuration file.'
-                ''.format(entry)
-            )
-    return True
-
-
-def import_config_json(checking_paths):
-    result = dict()
-    flag = False
-
-    for entry in checking_paths:
-        if os.path.exists(entry):
-            flag = True
-            with open(entry) as config_json:
-                config_json = json.loads(config_json.read())
-            for key, value in config_json.iteritems():
-                result[key.upper()] = value
-            break
-
-    if not flag:
-        raise SimpleStepperException(
-            '"config.json" does not exist!!!'
-        )
-    return result
-
 if __name__ == '__main__':
-    CONFIG.update(import_config_json(CONFIG_FILE_PATHS))
-    validate_config(CONFIG)
-    SIMPLE_STEPPER.listen(CONFIG['PORT'])
+    SIMPLE_STEPPER.listen(tornado.options.options.port)
     tornado.ioloop.IOLoop.instance().start()
