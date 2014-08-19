@@ -22,19 +22,21 @@ CONFIG = {
     'REGION_NAME': None,
     'AWS_ACCESS_KEY_ID': None,
     'AWS_SECRET_ACCESS_KEY': None,
-    'TARGET_SECURITY_GROUPS': list(),
+    'TARGET_SECURITY_GROUP_IDS': list(),
     'KEEP_SECURITY_GROUP_ELEMENTS': list(),
 }
 
 
 # handlers
 class SGHandler(tornado.web.RequestHandler):
+
     def initialize(self):
         self.region_name = CONFIG['REGION_NAME']
         self.aws_access_key_id = CONFIG['AWS_ACCESS_KEY_ID']
         self.aws_secret_access_key = CONFIG['AWS_SECRET_ACCESS_KEY']
-        self.target_security_groups = CONFIG['TARGET_SECURITY_GROUPS']
+        self.target_security_group_ids = CONFIG['TARGET_SECURITY_GROUP_IDS']
         self.keep_elements = CONFIG['KEEP_SECURITY_GROUP_ELEMENTS']
+
     def get(self):
         conn = boto.ec2.connect_to_region(
             region_name=self.region_name,
@@ -43,7 +45,7 @@ class SGHandler(tornado.web.RequestHandler):
         )
         result = dict()
         return conn.get_all_security_groups(
-            group_ids=self.target_security_groups
+            group_ids=self.target_security_group_ids
         )
 
 
@@ -58,21 +60,23 @@ class SimpleStepperException(BaseException):
     def __init__(self, message):
         super(SimpleStepperException, self).__init__(message)
 
+
 def validate_config(config):
     checking_keys = [
         'region_name',
         'aws_access_key_id',
         'aws_secret_access_key',
-        'target_security_groups',
+        'target_security_group_ids',
         'keep_security_group_elements',
     ]
     for entry in checking_keys:
-        if not entry in config.keys():
+        if not entry in [element.lower() for element in config.keys()]:
             raise SimpleStepperException(
                 '{0} is require parameter in configuration file.'
                 ''.format(entry)
             )
     return True
+
 
 def import_config_json(checking_paths):
     result = dict()
