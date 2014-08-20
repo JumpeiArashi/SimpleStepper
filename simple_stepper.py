@@ -192,7 +192,7 @@ class Application(tornado.web.Application):
     def __init__(self):
         handlers = [
             (
-                r"/allowAllIPs", SGHandler,
+                r"/allowIPs", SGHandler,
                 {
                     "region_name":
                         tornado.options.options.region_name,
