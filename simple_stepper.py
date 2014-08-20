@@ -18,6 +18,11 @@ import tornado.ioloop
 
 # define options
 tornado.options.define(
+    'config_file',
+    default='./config.py',
+    help='Configuration file path.'
+)
+tornado.options.define(
     'port',
     default=8080,
     help='Listen port number.'
@@ -207,8 +212,8 @@ class Application(tornado.web.Application):
 
 
 if __name__ == '__main__':
-    if os.path.exists('./config.py'):
-        tornado.options.parse_config_file('./config.py')
+    if os.path.exists(tornado.options.options.config_file):
+        tornado.options.parse_config_file(tornado.options.options.config_file)
     SIMPLE_STEPPER = tornado.httpserver.HTTPServer(Application())
     SIMPLE_STEPPER.listen(tornado.options.options.port)
     tornado.ioloop.IOLoop.instance().start()
