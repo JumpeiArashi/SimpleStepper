@@ -5,6 +5,7 @@ SimpleStepper backend main script.
 """
 
 import httplib
+import json
 import os
 
 import boto.ec2
@@ -68,7 +69,6 @@ class SGHandler(tornado.web.RequestHandler):
     def get(self):
         result = list()
         try:
-            print self.__dict__
             conn = boto.ec2.connect_to_region(
                 region_name=self.region_name,
                 aws_access_key_id=self.aws_access_key_id,
@@ -84,7 +84,7 @@ class SGHandler(tornado.web.RequestHandler):
                         'id': entry.id,
                         'rules': [
                             {
-                                'source': element.grants,
+                                'source': element.grants.__str__(),
                                 'port': '{0} - {1}'.format(
                                     element.from_port,
                                     element.to_port
@@ -94,25 +94,93 @@ class SGHandler(tornado.web.RequestHandler):
                         ]
                     }
                 )
-            self.write(result)
-            self.flush()
+                result = {
+                    'results': result
+                }
+            self.finish(json.dumps(result))
         except boto.exception.EC2ResponseError as exception:
-            self.set_status(httplib.UNAUTHORIZED)
-            self.write(
+            self.set_status(httplib.BAD_REQUEST)
+            self.finish(
                 {
                     'status_code': self.get_status(),
                     'message': exception.error_message
                 }
             )
-        except Exception as error:
+        except Exception as exception:
             self.set_status(httplib.INTERNAL_SERVER_ERROR)
-            self.write(
+            self.finish(
                 {
                     'status_code': self.get_status(),
-                    'message': error.__str__()
+                    'message': exception.__str__()
                 }
             )
 
+    def post(self):
+        try:
+            remote_ip = None
+            if (
+                'X-FORWARDED-FOR' in
+                [ entry.upper() for entry in self.request.headers.keys()]
+            ):
+                remote_ip = self.request.headers.get('X-FORWARDED_FOR')
+            else:
+                remote_ip = self.request.remote_ip
+
+            if remote_ip is None:
+                self.set_status(httplib.INTERNAL_SERVER_ERROR)
+                self.finish(
+                    {
+                        'status_code': self.get_status(),
+                        'message': 'Sorry, could not get Your IP Address.'
+                    }
+                )
+            conn = boto.ec2.connect_to_region(
+                region_name=self.region_name,
+                aws_access_key_id=self.aws_access_key_id,
+                aws_secret_access_key=self.aws_secret_access_key
+            )
+            response = conn.get_all_security_groups(
+                group_ids=self.target_security_group_ids
+            )
+            for entry in response:
+                entry.authorize(
+                    ip_protocol='tcp',
+                    from_port=22,
+                    to_port=22,
+                    cidr_ip=('{0}/32'.format(remote_ip))
+                )
+            message = (
+                'Your IP {ip} is appended to {sg}'
+                ''.format(
+                    ip=remote_ip,
+                    sg=tornado.options.options.target_securygrou
+                )
+            )
+            self.finish(
+                {
+                    'results': {
+                        'message': message
+                    }
+                }
+            )
+
+        except boto.exception.EC2ResponseError as exception:
+            self.set_status(httplib.BAD_REQUEST)
+            self.finish(
+                {
+                    'status_code': self.get_status(),
+                    'message': exception.error_message
+                }
+            )
+
+        except Exception as exception:
+            self.set_status(httplib.INTERNAL_SERVER_ERROR)
+            self.finish(
+                {
+                    'status_code': self.get_status(),
+                    'message': exception.__str__()
+                }
+            )
 
 # dispatch URLs
 class Application(tornado.web.Application):
@@ -121,8 +189,10 @@ class Application(tornado.web.Application):
             (
                 r"/allowAllIPs", SGHandler,
                 {
-                    "region_name": tornado.options.options.region_name,
-                    "aws_access_key_id": tornado.options.options.aws_access_key_id,
+                    "region_name":
+                        tornado.options.options.region_name,
+                    "aws_access_key_id":
+                        tornado.options.options.aws_access_key_id,
                     "aws_secret_access_key":
                         tornado.options.options.aws_secret_access_key,
                     "target_security_group_ids":
