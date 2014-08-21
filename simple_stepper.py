@@ -127,7 +127,7 @@ class SGHandler(tornado.web.RequestHandler):
                 'X-FORWARDED-FOR' in
                 [ entry.upper() for entry in self.request.headers.keys()]
             ):
-                remote_ip = self.request.headers.get('X-FORWARDED_FOR')
+                remote_ip = self.request.headers.get('X-FORWARDED-FOR')
             else:
                 remote_ip = self.request.remote_ip
 
@@ -158,14 +158,13 @@ class SGHandler(tornado.web.RequestHandler):
                 'Your IP {ip} is appended to {sg}'
                 ''.format(
                     ip=remote_ip,
-                    sg=tornado.options.options.target_securygrou
+                    sg=tornado.options.options.target_security_group_ids
                 )
             )
             self.finish(
                 {
-                    'results': {
-                        'message': message
-                    }
+                    'status_code': self.get_status(),
+                    'message': message
                 }
             )
 

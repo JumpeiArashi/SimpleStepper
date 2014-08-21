@@ -1,23 +1,18 @@
-<div class="jumbotron">
-  <h1>'Allo, 'Allo!</h1>
-  <p class="lead">
-    <img src="images/yeoman.png" alt="I'm Yeoman"><br>
-    Always a pleasure scaffolding your apps.
-  </p>
-  <p><a class="btn btn-lg btn-success" ng-href="#">Splendid!<span class="glyphicon glyphicon-ok"></span></a></p>
+<div class="notification-area" ng-repeat="entry in postInboundRulesResult">
+  <div role="alert" class="alert alert-warning alert-dismissible">
+    <button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span></button>
+    {{ entry.status_code }}: {{ entry.message }}
+  </div>
 </div>
-
-<div class="row marketing">
-  <h4>HTML5 Boilerplate</h4>
+<div class="jumbotron">
+  <h2>Simplify your access to AWS resource.</h2>
   <p>
-    HTML5 Boilerplate is a professional front-end template for building fast, robust, and adaptable web apps or sites.
+    This application appends rules that allows inbound traffic from your source IP to the specified AWS security group.
   </p>
-
-  <h4>Angular</h4>
-  <p>
-    AngularJS is a toolset for building the framework most suited to your application development.
-  </p>
-
-  <h4>Karma</h4>
-  <p>Spectacular Test Runner for JavaScript.</p>
+  <form role="form" ng-submit="appendYourIP()">
+  <p class="text-center"><button class="btn btn-lg btn-success">Append Your IP!!</button></p>
+  </form>
+  <small class="pull-right">
+    <a ng-href="#/inboundRules">show current security group settings.</a>
+  </small>
 </div>

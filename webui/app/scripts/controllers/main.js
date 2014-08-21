@@ -8,10 +8,22 @@
  * Controller of the simpleStepperWebuiApp
  */
 angular.module('simpleStepperWebuiApp')
-  .controller('MainCtrl', function ($scope) {
+  .controller('MainCtrl', function ($scope, $http) {
     $scope.awesomeThings = [
       'HTML5 Boilerplate',
       'AngularJS',
       'Karma'
     ];
+    $scope.postInboundRulesResult = [];
+    $scope.appendYourIP = function () {
+      $http.post(
+          '/api/inboundRules'
+        )
+        .success(function (data) {
+          $scope.postInboundRulesResult.push(data);
+        })
+        .error(function (data) {
+          $scope.postInboundRulesResult.push(data);
+        });
+      };
   });
