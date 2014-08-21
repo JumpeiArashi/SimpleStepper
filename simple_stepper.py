@@ -99,9 +99,9 @@ class SGHandler(tornado.web.RequestHandler):
                         ]
                     }
                 )
-                result = {
-                    'results': result
-                }
+            result = {
+                'results': result
+            }
             self.finish(json.dumps(result))
         except boto.exception.EC2ResponseError as exception:
             self.set_status(httplib.BAD_REQUEST)
