@@ -211,6 +211,7 @@ class Application(tornado.web.Application):
 
 
 if __name__ == '__main__':
+    tornado.options.parse_command_line()
     if os.path.exists(tornado.options.options.config_file):
         tornado.options.parse_config_file(tornado.options.options.config_file)
     SIMPLE_STEPPER = tornado.httpserver.HTTPServer(Application())
