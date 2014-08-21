@@ -192,7 +192,7 @@ class Application(tornado.web.Application):
     def __init__(self):
         handlers = [
             (
-                r"/inboundRules", SGHandler,
+                r"/api/inboundRules", SGHandler,
                 {
                     "region_name":
                         tornado.options.options.region_name,

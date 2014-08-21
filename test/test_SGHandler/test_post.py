@@ -19,7 +19,7 @@ class TestCase(tornado.testing.AsyncHTTPTestCase):
         This case when failed to AWS authentication.
         """
         self.http_client.fetch(
-            self.get_url('/inboundRules'),
+            self.get_url('/api/inboundRules'),
             self.stop,
             method='POST',
             body=json.dumps({})
