@@ -56,6 +56,7 @@ tornado.options.define(
     help='Specified keeping security group entries.'
 )
 
+
 # handlers
 class SGHandler(tornado.web.RequestHandler):
 
@@ -125,7 +126,7 @@ class SGHandler(tornado.web.RequestHandler):
             remote_ip = None
             if (
                 'X-FORWARDED-FOR' in
-                [ entry.upper() for entry in self.request.headers.keys()]
+                [entry.upper() for entry in self.request.headers.keys()]
             ):
                 remote_ip = self.request.headers.get('X-FORWARDED-FOR')
             else:
@@ -185,6 +186,59 @@ class SGHandler(tornado.web.RequestHandler):
                     'message': exception.__str__()
                 }
             )
+
+    def delete(self):
+        try:
+            conn = boto.ec2.connect_to_region(
+                region_name=self.region_name,
+                aws_access_key_id=self.aws_access_key_id,
+                aws_secret_access_key=self.aws_secret_access_key
+            )
+            results = list()
+            current_sgs = conn.get_all_security_groups(
+                group_ids=self.target_security_group_ids
+            )
+            for sg in current_sgs:
+                for rule in sg.rules:
+                    for cidr_ip in rule.grants:
+                        results.append(
+                            {
+                                'ip_protocol': rule.ip_protocol,
+                                'from_port': rule.from_port,
+                                'to_port': rule.to_port,
+                                'cidr_ip': str(cidr_ip)
+                            }
+                        )
+                        sg.revoke(
+                            ip_protocol=rule.ip_protocol,
+                            from_port=rule.from_port,
+                            to_port=rule.to_port,
+                            cidr_ip=cidr_ip
+                        )
+            self.finish(
+                json.dumps({
+                    'results': results
+                })
+            )
+
+        except boto.exception.EC2ResponseError as exception:
+            self.set_status(httplib.BAD_REQUEST)
+            self.finish(
+                {
+                    'status_code': self.get_status(),
+                    'message': exception.error_message
+                }
+            )
+
+        except Exception as exception:
+            self.set_status(httplib.INTERNAL_SERVER_ERROR)
+            self.finish(
+                {
+                    'status_code': self.get_status(),
+                    'message': exception.__str__()
+                }
+            )
+
 
 # dispatch URLs
 class Application(tornado.web.Application):
