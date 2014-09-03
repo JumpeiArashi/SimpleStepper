@@ -8,7 +8,7 @@
  * Controller of the simpleStepperWebuiApp
  */
 angular.module('simpleStepperWebuiApp')
-  .controller('MainCtrl', ['$scope', '$http', function ($scope, $http) {
+  .controller('MainCtrl', ['$scope', '$http', 'apiEndpoint', function ($scope, $http, apiEndpoint) {
     $scope.awesomeThings = [
       'HTML5 Boilerplate',
       'AngularJS',
@@ -17,7 +17,7 @@ angular.module('simpleStepperWebuiApp')
     $scope.postInboundRulesResult = [];
     $scope.appendYourIP = function () {
       $http.post(
-          '/api/inboundRules'
+           apiEndpoint + '/inboundRules'
         )
         .success(function (data) {
           $scope.postInboundRulesResult.push(data);

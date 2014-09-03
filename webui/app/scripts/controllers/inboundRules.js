@@ -8,14 +8,16 @@
  * Controller of the simpleStepperWebuiApp
  */
 angular.module('simpleStepperWebuiApp')
-  .controller('InboundRulesCtrl', ['$scope', '$http', function ($scope, $http) {
+  .controller('InboundRulesCtrl', ['$scope', '$http', 'apiEndpoint', function ($scope, $http, apiEndpoint) {
     $scope.awesomeThings = [
       'HTML5 Boilerplate',
       'AngularJS',
       'Karma'
     ];
     $scope.inboundRules = {};
-    $http.get('/api/inboundRules')
+    $http.get(
+        apiEndpoint + '/inboundRules'
+      )
       .success(function (data) {
         $scope.inboundRules = data;
       })
