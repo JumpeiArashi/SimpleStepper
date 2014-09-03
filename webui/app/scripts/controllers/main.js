@@ -8,7 +8,7 @@
  * Controller of the simpleStepperWebuiApp
  */
 angular.module('simpleStepperWebuiApp')
-  .controller('MainCtrl', function ($scope, $http) {
+  .controller('MainCtrl', ['$scope', '$http', function ($scope, $http) {
     $scope.awesomeThings = [
       'HTML5 Boilerplate',
       'AngularJS',
@@ -26,4 +26,4 @@ angular.module('simpleStepperWebuiApp')
           $scope.postInboundRulesResult.push(data);
         });
       };
-  });
+  }]);
