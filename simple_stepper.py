@@ -50,11 +50,6 @@ tornado.options.define(
     default=list(),
     help='Target security group ids of "SimpleStepper".'
 )
-tornado.options.define(
-    'keep_security_group_elements',
-    default=list(),
-    help='Specified keeping security group entries.'
-)
 
 
 # handlers
@@ -64,13 +59,11 @@ class SGHandler(tornado.web.RequestHandler):
                    region_name,
                    aws_access_key_id,
                    aws_secret_access_key,
-                   target_security_group_ids,
-                   keep_security_group_elements):
+                   target_security_group_ids):
         self.region_name = region_name
         self.aws_access_key_id = aws_access_key_id
         self.aws_secret_access_key = aws_secret_access_key
         self.target_security_group_ids = target_security_group_ids
-        self.keep_security_group_elements = keep_security_group_elements
 
     def get(self):
         result = list()
@@ -254,9 +247,7 @@ class Application(tornado.web.Application):
                     "aws_secret_access_key":
                         tornado.options.options.aws_secret_access_key,
                     "target_security_group_ids":
-                        tornado.options.options.target_security_group_ids,
-                    "keep_security_group_elements":
-                        tornado.options.options.keep_security_group_elements,
+                        tornado.options.options.target_security_group_ids
                 }
             )
         ]
