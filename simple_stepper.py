@@ -22,34 +22,6 @@ tornado.options.define(
     default='./config.py',
     help='Configuration file path.'
 )
-tornado.options.define(
-    'port',
-    default=8080,
-    help='Listen port number.'
-)
-tornado.options.define(
-    'region_name',
-    default='us-east-1',
-    help='AWS region name.',
-    group='AWS credential'
-)
-tornado.options.define(
-    'aws_access_key_id',
-    default='',
-    help='AWS access key id.',
-    group='AWS credential'
-)
-tornado.options.define(
-    'aws_secret_access_key',
-    default='',
-    help='AWS secret access key.',
-    group='AWS credential'
-)
-tornado.options.define(
-    'target_security_group_ids',
-    default=list(),
-    help='Target security group ids of "SimpleStepper".'
-)
 
 
 # handlers
@@ -256,9 +228,10 @@ class Application(tornado.web.Application):
 
 
 if __name__ == '__main__':
-    tornado.options.parse_command_line()
     if os.path.exists(tornado.options.options.config_file):
         tornado.options.parse_config_file(tornado.options.options.config_file)
+    else:
+        raise OSError('{0}: No such file or directory.')
     SIMPLE_STEPPER = tornado.httpserver.HTTPServer(Application())
     SIMPLE_STEPPER.listen(tornado.options.options.port)
     tornado.ioloop.IOLoop.instance().start()
