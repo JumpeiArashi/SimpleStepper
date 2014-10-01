@@ -14,6 +14,7 @@ import tornado.httpserver
 import tornado.options
 import tornado.web
 import tornado.ioloop
+import tornado_cors
 
 
 # define options
@@ -21,6 +22,36 @@ tornado.options.define(
     'config_file',
     default='./config.py',
     help='Configuration file path.'
+)
+tornado.options.define(
+    'port',
+    default=8080,
+    help='Listen port number.'
+)
+tornado.options.define(
+    'region_name',
+    default='us-east-1',
+    help='AWS region name.'
+)
+tornado.options.define(
+    'aws_access_key_id',
+    default='AWS_ACCESS_KEY_ID',
+    help='AWS access_key_id.'
+)
+tornado.options.define(
+    'aws_secret_access_key',
+    default='AWS_SECRET_ACCESS_KEY',
+    help='AWS secret_access_key.'
+)
+tornado.options.define(
+    'target_security_group_ids',
+    default=list(),
+    help='Target security group ids.'
+)
+tornado.options.define(
+    'development',
+    default=False,
+    help='If you are developer, set true to this option.'
 )
 
 
@@ -206,7 +237,7 @@ class SGHandler(tornado.web.RequestHandler):
 
 
 # dispatch URLs
-class Application(tornado.web.Application):
+class SimpleStepper(tornado.web.Application):
     def __init__(self):
         handlers = [
             (
@@ -224,14 +255,33 @@ class Application(tornado.web.Application):
             )
         ]
         settings = dict()
-        super(Application, self).__init__(handlers=handlers, **settings)
+        super(SimpleStepper, self).__init__(handlers=handlers, **settings)
 
 
-if __name__ == '__main__':
+# development
+class DevelopmentSimpleStepper(
+    tornado_cors.CorsMixin,
+    SimpleStepper
+):
+    CORS_ORIGIN = '*'
+
+
+def main():
+    tornado.options.parse_command_line()
     if os.path.exists(tornado.options.options.config_file):
         tornado.options.parse_config_file(tornado.options.options.config_file)
     else:
         raise OSError('{0}: No such file or directory.')
-    SIMPLE_STEPPER = tornado.httpserver.HTTPServer(Application())
+
+    if tornado.options.options.development:
+        SIMPLE_STEPPER = tornado.httpserver.HTTPServer(
+            DevelopmentSimpleStepper()
+        )
+    else:
+        SIMPLE_STEPPER = tornado.httpserver.HTTPServer(SimpleStepper())
     SIMPLE_STEPPER.listen(tornado.options.options.port)
     tornado.ioloop.IOLoop.instance().start()
+
+
+if __name__ == '__main__':
+    main()
