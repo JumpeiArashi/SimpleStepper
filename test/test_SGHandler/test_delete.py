@@ -12,7 +12,7 @@ import simple_stepper
 class TestCase(tornado.testing.AsyncHTTPTestCase):
 
     def get_app(self):
-        return simple_stepper.Application()
+        return simple_stepper.SimpleStepper()
 
     def test_unauthorized(self):
         """
