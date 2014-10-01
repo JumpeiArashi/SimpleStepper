@@ -18,6 +18,13 @@ setup(
         'boto',
         'tornado',
     ],
+    extras_require={
+        'developer': ['tornado-cors']
+    },
+    tests_require=[
+        'boto',
+        'nose',
+    ],
     classifiers=[
         'Programing Language :: Python :: 2.6',
         'Programing Language :: Python :: 2.7',
