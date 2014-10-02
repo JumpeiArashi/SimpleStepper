@@ -115,6 +115,22 @@ def parse_security_groups(conn, security_group_ids):
     return result
 
 
+def get_remote_ip(request_obj):
+    x_forwarded_for = 'X-Forwarded-For'
+    headers = [entry.title() for entry in request_obj.headers.keys()]
+    if x_forwarded_for in headers:
+        remote_ip = request_obj.headers.get(
+            x_forwarded_for.upper(),
+            request_obj.headers.get(
+                x_forwarded_for.title()
+            )
+        )
+    else:
+        remote_ip = request_obj.remote_ip
+
+    return remote_ip
+
+
 # handlers
 class SGHandler(tornado.web.RequestHandler):
 
@@ -164,14 +180,7 @@ class SGHandler(tornado.web.RequestHandler):
 
     def post(self):
         try:
-            remote_ip = None
-            if (
-                'X-FORWARDED-FOR' in
-                [entry.upper() for entry in self.request.headers.keys()]
-            ):
-                remote_ip = self.request.headers.get('X-FORWARDED-FOR')
-            else:
-                remote_ip = self.request.remote_ip
+            remote_ip = get_remote_ip(request_obj=self.request)
 
             if remote_ip is None:
                 self.set_status(httplib.INTERNAL_SERVER_ERROR)
