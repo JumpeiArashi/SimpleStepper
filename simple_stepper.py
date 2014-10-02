@@ -236,32 +236,9 @@ class SGHandler(tornado.web.RequestHandler):
             )
 
 
-# dispatch URLs
-class SimpleStepper(tornado.web.Application):
-    def __init__(self):
-        handlers = [
-            (
-                r"/api/inboundRules", SGHandler,
-                {
-                    "region_name":
-                        tornado.options.options.region_name,
-                    "aws_access_key_id":
-                        tornado.options.options.aws_access_key_id,
-                    "aws_secret_access_key":
-                        tornado.options.options.aws_secret_access_key,
-                    "target_security_group_ids":
-                        tornado.options.options.target_security_group_ids
-                }
-            )
-        ]
-        settings = dict()
-        super(SimpleStepper, self).__init__(handlers=handlers, **settings)
-
-
-# development
-class DevelopmentSimpleStepper(
+class DevelopmentSGHandler(
     tornado_cors.CorsMixin,
-    SimpleStepper
+    SGHandler
 ):
     CORS_ORIGIN = '*'
 
@@ -273,12 +250,51 @@ def main():
     else:
         raise OSError('{0}: No such file or directory.')
 
-    if tornado.options.options.development:
-        SIMPLE_STEPPER = tornado.httpserver.HTTPServer(
-            DevelopmentSimpleStepper()
+    # handler options
+    host_pattern = r'.*'
+
+    SIMPLE_STEPPER_APP = tornado.web.Application()
+    if not tornado.options.options.development:
+        SIMPLE_STEPPER_APP.add_handlers(
+            host_pattern=host_pattern,
+            host_handlers=[
+                (
+                    r'/api/inboundRules', SGHandler,
+                    {
+                        "region_name":
+                            tornado.options.options.region_name,
+                        "aws_access_key_id":
+                            tornado.options.options.aws_access_key_id,
+                        "aws_secret_access_key":
+                            tornado.options.options.aws_secret_access_key,
+                        "target_security_group_ids":
+                            tornado.options.options.target_security_group_ids
+                    }
+                )
+            ]
         )
     else:
-        SIMPLE_STEPPER = tornado.httpserver.HTTPServer(SimpleStepper())
+        SIMPLE_STEPPER_APP.add_handlers(
+            host_pattern=host_pattern,
+            host_handlers=[
+                (
+                    r'/api/inboundRules', DevelopmentSGHandler,
+                    {
+                        "region_name":
+                            tornado.options.options.region_name,
+                        "aws_access_key_id":
+                            tornado.options.options.aws_access_key_id,
+                        "aws_secret_access_key":
+                            tornado.options.options.aws_secret_access_key,
+                        "target_security_group_ids":
+                            tornado.options.options.target_security_group_ids
+                    }
+                )
+            ]
+        )
+    SIMPLE_STEPPER = tornado.httpserver.HTTPServer(
+        SIMPLE_STEPPER_APP
+    )
     SIMPLE_STEPPER.listen(tornado.options.options.port)
     tornado.ioloop.IOLoop.instance().start()
 
