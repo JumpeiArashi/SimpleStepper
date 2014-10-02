@@ -3,8 +3,7 @@
 
 import httplib
 import json
-
-import nose.tools
+import logging
 
 import tests.test_SGHandler.base
 
@@ -22,19 +21,8 @@ class TestCase(tests.test_SGHandler.base.BaseSGHandlerTestCase):
             body=json.dumps({})
         )
         response = self.wait()
+        logging.debug(response)
+        json_response = json.loads(response.body)
 
-        flag = True
-        messages = list()
-
-        if response.code != httplib.BAD_REQUEST:
-            flag = False
-            messages.append('Status Code is not 400.')
-
-        if json.loads(response.body).get('status_code') != httplib.BAD_REQUEST:
-            flag = False
-            messages.append('Status Code in message body is not 400.')
-
-        nose.tools.ok_(
-            flag,
-            msg='\n'.join(messages)
-        )
+        self.assertEqual(response.code, httplib.BAD_REQUEST)
+        self.assertEqual(json_response.get('status_code'), httplib.BAD_REQUEST)
