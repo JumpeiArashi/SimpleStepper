@@ -9,12 +9,14 @@
         <thead>
           <tr>
             <th>IP Addresses</th>
+            <th>Protocol</th>
             <th>Port Range</th>
           </tr>
         </thead>
         <tbody>
           <tr ng-repeat="element in entry.rules">
             <td>{{ element.source }}</td>
+            <td>{{ element.protocol }}</td>
             <td>{{ element.port }}</td>
           </tr>
         </tbody>
