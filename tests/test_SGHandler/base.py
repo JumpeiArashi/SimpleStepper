@@ -19,7 +19,12 @@ class BaseSGHandlerTestCase(tornado.testing.AsyncHTTPTestCase):
                         'region_name': 'us-east-1',
                         'aws_access_key_id': 'HOGEHOGE',
                         'aws_secret_access_key': 'FUGAFUGA',
-                        'target_security_group_ids': ['sg-HOGEHOGE']
+                        'target_security_group_ids': ['sg-HOGEHOGE'],
+                        'security_group_defines': {
+                            'sg-XXXXXXXX': [
+                                {'tcp': 22}
+                            ]
+                        }
                     }
                 )
             ]

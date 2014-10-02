@@ -49,6 +49,11 @@ tornado.options.define(
     help='Target security group ids.'
 )
 tornado.options.define(
+    'security_group_defines',
+    default=dict(),
+    help='Target security group allow rule defines'
+)
+tornado.options.define(
     'development',
     default=False,
     help='If you are developer, set true to this option.'
@@ -138,11 +143,13 @@ class SGHandler(tornado.web.RequestHandler):
                    region_name,
                    aws_access_key_id,
                    aws_secret_access_key,
-                   target_security_group_ids):
+                   target_security_group_ids,
+                   security_group_defines):
         self.region_name = region_name
         self.aws_access_key_id = aws_access_key_id
         self.aws_secret_access_key = aws_secret_access_key
         self.target_security_group_ids = target_security_group_ids
+        self.security_group_defines = security_group_defines
         self.conn = None
 
     def get_ec2_connection(self):
@@ -322,7 +329,9 @@ def main():
                         "aws_secret_access_key":
                             tornado.options.options.aws_secret_access_key,
                         "target_security_group_ids":
-                            tornado.options.options.target_security_group_ids
+                            tornado.options.options.target_security_group_ids,
+                        "security_group_defines":
+                            tornado.options.options.security_group_defines
                     }
                 )
             ]
@@ -341,7 +350,9 @@ def main():
                         "aws_secret_access_key":
                             tornado.options.options.aws_secret_access_key,
                         "target_security_group_ids":
-                            tornado.options.options.target_security_group_ids
+                            tornado.options.options.target_security_group_ids,
+                        "security_group_defines":
+                            tornado.options.options.security_group_defines
                     }
                 )
             ]

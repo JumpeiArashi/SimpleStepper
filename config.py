@@ -6,3 +6,13 @@ region_name = 'AWS_REGION_NAME'
 aws_access_key_id = 'YOUR_AWS_ACCESS_KEY_ID'
 aws_secret_access_key = 'YOUR_AWS_SECRET_ACCESS_KEY'
 target_security_group_ids = ['TARGET_SECURITY_GROUP_IDS']
+security_group_defines = {
+    'sg-XXXXXXXX': [
+        {'tcp': 22},
+        {'tcp': 80}
+    ],
+    'sg-YYYYYYYY': [
+        {'tcp': 3306},
+        {'udp': 11211}
+    ]
+}
