@@ -121,6 +121,14 @@ def parse_security_groups(conn, security_group_ids):
 
 
 def get_remote_ip(request_obj):
+    """
+    :param request_obj:
+    Client HTTP request object.
+    In using this method in RequestHandler, this param will be 'self.request'
+    :type request_obj: tornado.httpclient.HTTPRequest
+    :return: Remote IP Address (Client IP Address).
+    :rtype: str
+    """
     x_forwarded_for = 'X-Forwarded-For'
     headers = [entry.title() for entry in request_obj.headers.keys()]
     if x_forwarded_for in headers:
