@@ -5,23 +5,21 @@ import httplib
 import json
 
 import nose.tools
-import tornado.testing
-import simple_stepper
+
+import tests.test_SGHandler.base
 
 
-class TestCase(tornado.testing.AsyncHTTPTestCase):
-
-    def get_app(self):
-        return simple_stepper.SimpleStepper()
+class TestCase(tests.test_SGHandler.base.BaseSGHandlerTestCase):
 
     def test_unauthorized(self):
         """
         This case when failed to AWS authentication.
         """
         self.http_client.fetch(
-            self.get_url('/api/inboundRules'),
+            self.get_url(self.test_inbound_rules_url),
             self.stop,
-            method='DELETE'
+            method='POST',
+            body=json.dumps({})
         )
         response = self.wait()
 
@@ -30,9 +28,7 @@ class TestCase(tornado.testing.AsyncHTTPTestCase):
 
         if response.code != httplib.BAD_REQUEST:
             flag = False
-            messages.append(
-                'Status Code is not {0}.'.format(response.code)
-            )
+            messages.append('Status Code is not 400.')
 
         if json.loads(response.body).get('status_code') != httplib.BAD_REQUEST:
             flag = False

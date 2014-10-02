@@ -55,6 +55,66 @@ tornado.options.define(
 )
 
 
+# utils
+def parse_security_groups(conn, security_group_ids):
+    """
+    Parse raw security group values with following format (json like).
+    {
+      "results": [
+        {
+          "name": "security-group01",
+          "id": "sg-XXXXXXXX",
+          "rules": [
+            {
+              "source": "127.0.0.1/32",
+              "protocol": "tcp",
+              "port": "22 - 22"
+            },
+            {
+              "source": "127.0.0.1/32",
+              "protocol": "tcp",
+              "port": "80 - 80"
+            }
+          }
+        ]
+      ]
+    }
+
+    :param conn: AWS connection object
+    :type conn: boto.ec2.EC2Connection
+    :param security_group_ids: AWS security group ids
+    :type security_group_ids: list
+    :return: Parsed security group rules (json like)
+    :rtype: dict
+    """
+    result = list()
+    response = conn.get_all_security_groups(
+        group_ids=security_group_ids
+    )
+    for raw_security_group in response:
+        security_group = dict()
+        security_group['name'] = raw_security_group.name
+        security_group['id'] = raw_security_group.id
+        security_group['rules'] = list()
+        for rule in raw_security_group.rules:
+            for entry in rule.grants:
+                security_group['rules'].append(
+                    {
+                        'source': str(entry),
+                        'protocol': rule.ip_protocol,
+                        'port': '{0} - {1}'.format(
+                            rule.from_port,
+                            rule.to_port
+                        )
+                    }
+                )
+        result.append(security_group)
+    result = {
+        'results': result
+    }
+    return result
+
+
 # handlers
 class SGHandler(tornado.web.RequestHandler):
 
@@ -67,40 +127,24 @@ class SGHandler(tornado.web.RequestHandler):
         self.aws_access_key_id = aws_access_key_id
         self.aws_secret_access_key = aws_secret_access_key
         self.target_security_group_ids = target_security_group_ids
+        self.conn = None
 
-    def get(self):
-        result = list()
-        try:
-            conn = boto.ec2.connect_to_region(
+    def get_ec2_connection(self):
+        if self.conn is None:
+            self.conn = boto.ec2.connect_to_region(
                 region_name=self.region_name,
                 aws_access_key_id=self.aws_access_key_id,
                 aws_secret_access_key=self.aws_secret_access_key
             )
-            response = conn.get_all_security_groups(
-                group_ids=self.target_security_group_ids
+
+    def get(self):
+        try:
+            self.get_ec2_connection()
+            parsed_security_groups = parse_security_groups(
+                conn=self.conn,
+                security_group_ids=self.target_security_group_ids
             )
-            for raw_security_group in response:
-                security_group = dict()
-                security_group['name'] = raw_security_group.name
-                security_group['id'] = raw_security_group.id
-                security_group['rules'] = list()
-                for rule in raw_security_group.rules:
-                    for entry in rule.grants:
-                        security_group['rules'].append(
-                            {
-                                'source': str(entry),
-                                'protocol': rule.ip_protocol,
-                                'port': '{0} - {1}'.format(
-                                    rule.from_port,
-                                    rule.to_port
-                                )
-                            }
-                        )
-                result.append(security_group)
-            result = {
-                'results': result
-            }
-            self.finish(json.dumps(result))
+            self.finish(json.dumps(parsed_security_groups))
         except boto.exception.EC2ResponseError as exception:
             self.set_status(httplib.BAD_REQUEST)
             self.finish(
