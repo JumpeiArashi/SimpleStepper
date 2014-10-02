@@ -13,6 +13,7 @@ import simple_stepper
 
 import tests.test_SGHandler.base
 
+
 class TestCase(tests.test_SGHandler.base.BaseSGHandlerTestCase):
 
     def test_unauthorized(self):
@@ -30,6 +31,9 @@ class TestCase(tests.test_SGHandler.base.BaseSGHandlerTestCase):
         self.assertEqual(response.code, httplib.BAD_REQUEST)
         self.assertEqual(json_response.get('status_code'), httplib.BAD_REQUEST)
 
+
+class TestUtilsForGetMethod(object):
+
     @moto.mock_ec2
     def test_parse_security_groups(self):
         conn = boto.ec2.connect_to_region(
@@ -41,9 +45,9 @@ class TestCase(tests.test_SGHandler.base.BaseSGHandlerTestCase):
             description='Testing security group'
         )
 
-        protocol='tcp'
-        port=22
-        cidr_ip='192.192.192.192/32'
+        protocol = 'tcp'
+        port = 22
+        cidr_ip = '192.192.192.192/32'
         checked = {
             'results': [
                 {
