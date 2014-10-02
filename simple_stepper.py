@@ -79,23 +79,24 @@ class SGHandler(tornado.web.RequestHandler):
             response = conn.get_all_security_groups(
                 group_ids=self.target_security_group_ids
             )
-            for entry in response:
-                result.append(
-                    {
-                        'name': entry.name,
-                        'id': entry.id,
-                        'rules': [
+            for raw_security_group in response:
+                security_group = dict()
+                security_group['name'] = raw_security_group.name
+                security_group['id'] = raw_security_group.id
+                security_group['rules'] = list()
+                for rule in raw_security_group.rules:
+                    for entry in rule.grants:
+                        security_group['rules'].append(
                             {
-                                'source': element.grants.__str__(),
+                                'source': str(entry),
+                                'protocol': rule.ip_protocol,
                                 'port': '{0} - {1}'.format(
-                                    element.from_port,
-                                    element.to_port
+                                    rule.from_port,
+                                    rule.to_port
                                 )
                             }
-                            for element in entry.rules
-                        ]
-                    }
-                )
+                        )
+                result.append(security_group)
             result = {
                 'results': result
             }
