@@ -173,7 +173,7 @@ class SGHandler(tornado.web.RequestHandler):
             self.get_ec2_connection()
             parsed_security_groups = parse_security_groups(
                 conn=self.conn,
-                security_group_ids=self.target_security_group_ids
+                security_group_ids=self.security_group_defines.keys()
             )
             self.finish(json.dumps(parsed_security_groups))
         except boto.exception.EC2ResponseError as exception:
@@ -196,7 +196,6 @@ class SGHandler(tornado.web.RequestHandler):
     def post(self):
         try:
             remote_ip = get_remote_ip(request_obj=self.request)
-
             if remote_ip is None:
                 self.set_status(httplib.INTERNAL_SERVER_ERROR)
                 self.finish(
@@ -221,10 +220,10 @@ class SGHandler(tornado.web.RequestHandler):
                     cidr_ip=('{0}/32'.format(remote_ip))
                 )
             message = (
-                'Your IP {ip} is appended to {sg}'
+                'Your IP address {ip} is appended to {sg}.'
                 ''.format(
                     ip=remote_ip,
-                    sg=tornado.options.options.target_security_group_ids
+                    sg=self.security_group_defines.keys()
                 )
             )
             self.finish(
