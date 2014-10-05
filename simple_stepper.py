@@ -144,6 +144,48 @@ def get_remote_ip(request_obj):
     return remote_ip
 
 
+def authorize_ips(conn, remote_ip, security_group_defines):
+    """
+    Add allow inbound rules to target security group ids.
+    :param conn: AWS connection object
+    :type conn: boto.ec2.EC2Connection
+    :param remote_ip: Target IP Address. "Not" cider. e.g: 192.168.10.1
+    :type remote_ip: str
+    :param security_group_defines:
+    Allow rule defines of target security groups.
+    This param has dict type object which has
+    "AWS security group ID" as key, and port number list as value.
+    e.g:
+    {
+        "sg-XXXXXXXX": [
+            {"tcp": 20},
+            {"tcp": 80},
+            {"tcp": 8080},
+            {"tcp": 443}
+        ],
+        'sg-YYYYYYYY': [
+            {"tcp": 5439},
+            {"udp": 6380}
+        ]
+    }
+    """
+    target_security_group_ids = security_group_defines.keys()
+    security_groups = conn.get_all_security_groups(
+        group_ids=target_security_group_ids
+    )
+    for security_group in security_groups:
+        for entry in security_group_defines[security_group.id]:
+            for protocol, port in entry.items():
+                security_group.authorize(
+                    ip_protocol=protocol,
+                    from_port=port,
+                    to_port=port,
+                    cidr_ip='{0}/32'.format(remote_ip)
+                )
+
+    return security_groups
+
+
 # handlers
 class SGHandler(tornado.web.RequestHandler):
 
@@ -204,21 +246,13 @@ class SGHandler(tornado.web.RequestHandler):
                         'message': 'Sorry, could not get Your IP Address.'
                     }
                 )
-            conn = boto.ec2.connect_to_region(
-                region_name=self.region_name,
-                aws_access_key_id=self.aws_access_key_id,
-                aws_secret_access_key=self.aws_secret_access_key
+
+            self.get_ec2_connection()
+            authorize_ips(
+                conn=self.conn,
+                remote_ip=remote_ip,
+                security_group_defines=self.security_group_defines
             )
-            response = conn.get_all_security_groups(
-                group_ids=self.target_security_group_ids
-            )
-            for entry in response:
-                entry.authorize(
-                    ip_protocol='tcp',
-                    from_port=22,
-                    to_port=22,
-                    cidr_ip=('{0}/32'.format(remote_ip))
-                )
             message = (
                 'Your IP address {ip} is appended to {sg}.'
                 ''.format(
