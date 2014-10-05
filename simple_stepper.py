@@ -168,6 +168,8 @@ def authorize_ips(conn, remote_ip, security_group_defines):
             {"udp": 6380}
         ]
     }
+    :return: list of targeted security group objects
+    :rtype: list
     """
     target_security_group_ids = security_group_defines.keys()
     security_groups = conn.get_all_security_groups(
