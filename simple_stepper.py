@@ -287,13 +287,9 @@ class SGHandler(tornado.web.RequestHandler):
 
     def delete(self):
         try:
-            conn = boto.ec2.connect_to_region(
-                region_name=self.region_name,
-                aws_access_key_id=self.aws_access_key_id,
-                aws_secret_access_key=self.aws_secret_access_key
-            )
+            self.get_ec2_connection()
             results = list()
-            current_sgs = conn.get_all_security_groups(
+            current_sgs = self.conn.get_all_security_groups(
                 group_ids=self.target_security_group_ids
             )
             for sg in current_sgs:
