@@ -14,7 +14,6 @@ import tornado.httpserver
 import tornado.options
 import tornado.web
 import tornado.ioloop
-import tornado_cors
 
 
 # define options
@@ -359,13 +358,6 @@ class SGHandler(tornado.web.RequestHandler):
             )
 
 
-class DevelopmentSGHandler(
-    tornado_cors.CorsMixin,
-    SGHandler
-):
-    CORS_ORIGIN = '*'
-
-
 def main():
     tornado.options.parse_command_line()
     if os.path.exists(tornado.options.options.config_file):
@@ -397,6 +389,13 @@ def main():
             ]
         )
     else:
+        import tornado_cors
+        class DevelopmentSGHandler(
+            tornado_cors.CorsMixin,
+            SGHandler
+        ):
+            CORS_ORIGIN = '*'
+
         SIMPLE_STEPPER_APP.add_handlers(
             host_pattern=host_pattern,
             host_handlers=[
