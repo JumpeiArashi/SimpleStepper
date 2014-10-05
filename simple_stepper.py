@@ -188,6 +188,54 @@ def authorize_ips(conn, remote_ip, security_group_defines):
     return security_groups
 
 
+def revoke_all_rules(conn, security_group_ids):
+    """
+    Remove all rules in target security group.
+    :param conn: AWS ec2 connection object
+    :type conn: boto.ec2.EC2Connection
+    :param security_group_ids: Target security group ids
+    :type security_group_ids: list, tuple
+    :return: Following format result set(include revoke security group rules).
+    {
+        'results': [
+            {
+               'protocol': 'tcp',
+               'port': 22,
+               'ip_address': '127.0.0.1/32'
+            },
+            {
+               'protocol': 'tcp',
+               'port': 80,
+               'ip_address': '192.192.192.192/32'
+            }
+        ]
+    }
+    :rtype: dict
+    """
+    security_groups = conn.get_all_security_groups(
+        group_ids=security_group_ids
+    )
+    result_set = dict(results=list())
+    for entry in security_groups:
+        for rule in entry.rules:
+            for cidr_ip in rule.grants:
+                result_set['results'].append(
+                    {
+                        'ptorocol': rule.ip_protocol,
+                        'port': rule.from_port,
+                        'ip_address': str(cidr_ip)
+                    }
+                )
+                entry.revoke(
+                    ip_protocol=rule.ip_protocol,
+                    from_port=rule.from_port,
+                    to_port=rule.to_port,
+                    cidr_ip=cidr_ip
+                )
+
+    return result_set
+
+
 # handlers
 class SGHandler(tornado.web.RequestHandler):
 
@@ -290,27 +338,10 @@ class SGHandler(tornado.web.RequestHandler):
     def delete(self):
         try:
             self.get_ec2_connection()
-            results = list()
-            current_sgs = self.conn.get_all_security_groups(
-                group_ids=self.target_security_group_ids
+            results = revoke_all_rules(
+                conn=self.conn,
+                security_group_ids=self.security_group_defines.keys()
             )
-            for sg in current_sgs:
-                for rule in sg.rules:
-                    for cidr_ip in rule.grants:
-                        results.append(
-                            {
-                                'ip_protocol': rule.ip_protocol,
-                                'from_port': rule.from_port,
-                                'to_port': rule.to_port,
-                                'cidr_ip': str(cidr_ip)
-                            }
-                        )
-                        sg.revoke(
-                            ip_protocol=rule.ip_protocol,
-                            from_port=rule.from_port,
-                            to_port=rule.to_port,
-                            cidr_ip=cidr_ip
-                        )
             self.finish(
                 json.dumps({
                     'results': results
