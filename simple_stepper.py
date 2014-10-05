@@ -44,11 +44,6 @@ tornado.options.define(
     help='AWS secret_access_key.'
 )
 tornado.options.define(
-    'target_security_group_ids',
-    default=list(),
-    help='Target security group ids.'
-)
-tornado.options.define(
     'security_group_defines',
     default=dict(),
     help='Target security group allow rule defines'
@@ -171,9 +166,8 @@ def authorize_ips(conn, remote_ip, security_group_defines):
     :return: list of targeted security group objects
     :rtype: list
     """
-    target_security_group_ids = security_group_defines.keys()
     security_groups = conn.get_all_security_groups(
-        group_ids=target_security_group_ids
+        security_group_defines.keys()
     )
     for security_group in security_groups:
         for entry in security_group_defines[security_group.id]:
@@ -243,12 +237,10 @@ class SGHandler(tornado.web.RequestHandler):
                    region_name,
                    aws_access_key_id,
                    aws_secret_access_key,
-                   target_security_group_ids,
                    security_group_defines):
         self.region_name = region_name
         self.aws_access_key_id = aws_access_key_id
         self.aws_secret_access_key = aws_secret_access_key
-        self.target_security_group_ids = target_security_group_ids
         self.security_group_defines = security_group_defines
         self.conn = None
 
@@ -398,8 +390,6 @@ def main():
                             tornado.options.options.aws_access_key_id,
                         "aws_secret_access_key":
                             tornado.options.options.aws_secret_access_key,
-                        "target_security_group_ids":
-                            tornado.options.options.target_security_group_ids,
                         "security_group_defines":
                             tornado.options.options.security_group_defines
                     }
@@ -419,8 +409,6 @@ def main():
                             tornado.options.options.aws_access_key_id,
                         "aws_secret_access_key":
                             tornado.options.options.aws_secret_access_key,
-                        "target_security_group_ids":
-                            tornado.options.options.target_security_group_ids,
                         "security_group_defines":
                             tornado.options.options.security_group_defines
                     }
