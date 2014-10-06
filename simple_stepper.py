@@ -390,6 +390,7 @@ def main():
         )
     else:
         import tornado_cors
+
         class DevelopmentSGHandler(
             tornado_cors.CorsMixin,
             SGHandler
