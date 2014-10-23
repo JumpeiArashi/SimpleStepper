@@ -23,6 +23,7 @@ setup(
     },
     tests_require=[
         'boto',
+        'moto',
         'nose',
     ],
     classifiers=[
