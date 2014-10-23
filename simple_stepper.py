@@ -358,6 +358,39 @@ class SGHandler(tornado.web.RequestHandler):
             )
 
 
+class WebUIHandler(tornado.web.RequestHandler):
+
+    def get(self):
+        index_html = os.path.join(
+            os.path.abspath(os.path.dirname(__name__)),
+            'webui/dist/index.html'
+        )
+        self.render(
+            template_name=index_html
+        )
+
+
+def construct_handler(sg_handler=SGHandler):
+    return [
+        (
+            r'/api/inboundRules', sg_handler,
+            {
+                "region_name":
+                tornado.options.options.region_name,
+                "aws_access_key_id":
+                tornado.options.options.aws_access_key_id,
+                "aws_secret_access_key":
+                tornado.options.options.aws_secret_access_key,
+                "security_group_defines":
+                tornado.options.options.security_group_defines
+            }
+        ),
+        (
+            r'/', WebUIHandler
+        )
+    ]
+
+
 def main():
     tornado.options.parse_command_line()
     if os.path.exists(tornado.options.options.config_file):
@@ -368,25 +401,20 @@ def main():
     # handler options
     host_pattern = r'.*'
 
-    SIMPLE_STEPPER_APP = tornado.web.Application()
+    # application settings
+    static_path = os.path.join(
+        os.path.abspath(os.path.dirname(__name__)), 'webui/dist'
+    )
+    settings = {
+        'static_path': static_path,
+        'static_url_prefix': '/'
+    }
+
+    SIMPLE_STEPPER_APP = tornado.web.Application(**settings)
     if not tornado.options.options.development:
         SIMPLE_STEPPER_APP.add_handlers(
             host_pattern=host_pattern,
-            host_handlers=[
-                (
-                    r'/api/inboundRules', SGHandler,
-                    {
-                        "region_name":
-                            tornado.options.options.region_name,
-                        "aws_access_key_id":
-                            tornado.options.options.aws_access_key_id,
-                        "aws_secret_access_key":
-                            tornado.options.options.aws_secret_access_key,
-                        "security_group_defines":
-                            tornado.options.options.security_group_defines
-                    }
-                )
-            ]
+            host_handlers=construct_handler()
         )
     else:
         import tornado_cors
@@ -399,21 +427,7 @@ def main():
 
         SIMPLE_STEPPER_APP.add_handlers(
             host_pattern=host_pattern,
-            host_handlers=[
-                (
-                    r'/api/inboundRules', DevelopmentSGHandler,
-                    {
-                        "region_name":
-                            tornado.options.options.region_name,
-                        "aws_access_key_id":
-                            tornado.options.options.aws_access_key_id,
-                        "aws_secret_access_key":
-                            tornado.options.options.aws_secret_access_key,
-                        "security_group_defines":
-                            tornado.options.options.security_group_defines
-                    }
-                )
-            ]
+            host_handlers=construct_handler(sg_handler=DevelopmentSGHandler)
         )
     SIMPLE_STEPPER = tornado.httpserver.HTTPServer(
         SIMPLE_STEPPER_APP
