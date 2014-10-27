@@ -1,6 +1,6 @@
 FROM centos:centos6
 MAINTAINER 'ARASHI, Jumpei'
-RUN yum install -y nodejs npm python-pip python-setuptools git
+RUN yum install -y python-pip python-setuptools git
 RUN git clone https://github.com/JumpeiArashi/SimpleStepper.git
 RUN cd SimpleStepper && python setup.py develop
 ADD config.py /opt/config.py
