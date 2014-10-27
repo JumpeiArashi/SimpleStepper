@@ -14,10 +14,10 @@ import tornado.testing
 
 import simple_stepper
 
-import tests.test_SGHandler.base
+import test.test_SGHandler.base
 
 
-class TestCase(tests.test_SGHandler.base.BaseSGHandlerTestCase):
+class TestCase(test.test_SGHandler.base.BaseSGHandlerTestCase):
 
     def test_unauthorized(self):
         """
