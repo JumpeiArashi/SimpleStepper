@@ -362,7 +362,7 @@ class WebUIHandler(tornado.web.RequestHandler):
 
     def get(self):
         index_html = os.path.join(
-            os.path.abspath(os.path.dirname(__name__)),
+            os.path.abspath(os.path.dirname(__file__)),
             'webui/dist/index.html'
         )
         self.render(
