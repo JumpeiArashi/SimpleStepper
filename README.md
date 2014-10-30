@@ -214,3 +214,8 @@ Future
 * Temporary credential by using EC2 instance's IAM role.
 * Provide IAM role json that has an authority to modify specified security groups.
 * Run SimpleStepper docker container with AWS ElasticBeansTalk.
+
+License
+-------
+
+SimpleStepper is released under the [WTFPL license](http://www.wtfpl.net/) ![WTFPL license logo](http://www.wtfpl.net/wp-content/uploads/2012/12/wtfpl-badge-4.png)
