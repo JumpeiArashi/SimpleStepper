@@ -166,7 +166,7 @@ def authorize_ips(conn, remote_ip, security_group_defines):
     :rtype: list
     """
     security_groups = conn.get_all_security_groups(
-        security_group_defines.keys()
+        group_ids=security_group_defines.keys()
     )
     for security_group in security_groups:
         for entry in security_group_defines[security_group.id]:
