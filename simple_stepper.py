@@ -403,7 +403,7 @@ def main():
 
     # application settings
     static_path = os.path.join(
-        os.path.abspath(os.path.dirname(__name__)), 'webui/dist'
+        os.path.abspath(os.path.dirname(__file__)), 'webui/dist'
     )
     settings = {
         'static_path': static_path,
