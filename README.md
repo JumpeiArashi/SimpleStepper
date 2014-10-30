@@ -147,7 +147,12 @@ Warning
 -------
 
 SimpleStepper has no mechanism of access controlling.
-So you may have to access controll such as a verification by client certification, source IP, etc...
+So you may have to access controll such as a verification by client certification, ACL by source IP, etc...
+
+FYI: We use SimpleStepper as pseudo-VPN to production environment.
+Our verification is by client certification on Nginx.
+So we make Nginx reverse proxy.
+
 
 For developper
 --------------
@@ -156,7 +161,7 @@ Fork me! And do me pull request!
 
 note:
 
-If you don't like our UI, you customize and develop with *development mode*.
+If you don't like our UI, you can customize and develop with *development mode*.
 
 1. Modify API endpoint in UI.
 2. Run SimpleStepper backend system with development mode.
@@ -204,6 +209,7 @@ bower install
 
 Let's create your SimpleStepper UI.
 
+
 Future
 ------
 
@@ -214,6 +220,7 @@ Future
 * Temporary credential by using EC2 instance's IAM role.
 * Provide IAM role json that has an authority to modify specified security groups.
 * Run SimpleStepper docker container with AWS ElasticBeansTalk.
+
 
 License
 -------
