@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 port = 8080
 region_name = 'AWS_REGION_NAME'
 aws_access_key_id = 'YOUR_AWS_ACCESS_KEY_ID'
