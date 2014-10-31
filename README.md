@@ -16,7 +16,7 @@ Allowed IP address of inbound rules is your source IP address.
 note:
 
 If `X-Forwarded-For` header includes in request headers, SimpleStepper use the value as source IP to make an opening into security group.
-This means that you run SimpleStepper behind some reverse proxy(ELB, nginx or HAProxy).
+This means that you are able to run SimpleStepper behind some reverse proxy(ELB, nginx or HAProxy).
 
 
 Getting Start
