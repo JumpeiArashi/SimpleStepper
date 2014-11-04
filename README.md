@@ -143,18 +143,87 @@ Finally you can add inbound rules with just one-click!!
 Let's access your SimpleStepper server and click `Append Your IP!!` button.
 
 
+API Reference
+-------------
+
+SimpleStepper provides below APIs.
+All end point has `/api` url as uri prefix.
+
+### /api/inboundRules
+
+#### GET
+
+This API gets your security group rules and returns following json.
+
+```json
+{
+  "results": [
+    {
+      "id": "sg-XXXXXXXX",
+      "name": "SecurityGroup001",
+      "rules": [
+        {
+          "port": "22 - 22",
+          "protocol": "tcp",
+          "source": "192.30.252.1/32"
+        }
+      ]
+    }
+  ]
+}
+```
+
+#### POST
+
+Add inbound rules to your specified security group.
+POST body must be empty.
+So you can use below command(curl) to add your global IP address.
+
+```bash
+curl -X POST https://YOUR_SIMPLE_STEPPER_ENDPOINT/api/inboundRules
+```
+
+This API returns following json.
+
+```json
+{
+  "status_code": 200,
+  "message": "Your IP GLOBAL_IP is appended to ['SECUTIRY_GROUP_ID_001', 'SECURITY_GROUP_ID_002'...]"
+}
+```
+
+#### DELETE
+
+Delete all inbound rules of specified security groups and returns following json.
+
+```json
+{
+  "results": [
+    {
+      "to_port": 22,
+      "from_port": 22,
+      "ip_protocol": "tcp",
+      "cidr_ip": "192.39.252.1/32"
+    }
+  ]
+}
+```
+
+note: Using `DELETE` http method, you can **all** inbound rules of the security group what you specify in `config.py`.
+
+
 Warning
 -------
 
 SimpleStepper has no mechanism of access controlling.
-So you may have to access controll such as a verification by client certification, ACL by source IP, etc...
+So you may have to access control such as a verification by client certification, ACL by source IP, etc...
 
 FYI: We use SimpleStepper as pseudo-VPN to production environment.
 Our verification is by client certification on Nginx.
 So we make Nginx reverse proxy.
 
 
-For developper
+For developer
 --------------
 
 Fork me! And do me pull request!
