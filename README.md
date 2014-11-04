@@ -127,7 +127,7 @@ In previous section, you have just completed your configuration file.
 Now, you can build your SimpleStepper.
 
 ```bash
-cd YOUR_SIMPLE_STEPPER directory
+cd YOUR_SIMPLE_STEPPER_DIRECTORY
 docker build ./ --no-chache=true
 ```
 
