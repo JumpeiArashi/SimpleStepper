@@ -250,7 +250,7 @@ angular.module('simpleStepperWebuiApp')
   .constant('apiEndpoint', 'http://localhost:8080/api');
 ```
 
-### Run SimpleStepper backend system with development mode.
+### Run SimpleStepper backend system with development mode
 
 ```bash
 # In your local PC or development server.
