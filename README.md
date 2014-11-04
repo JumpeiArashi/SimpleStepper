@@ -218,7 +218,7 @@ Warning
 SimpleStepper has no mechanism of access controlling.
 So you may have to access control such as a verification by client certification, ACL by source IP, etc...
 
-FYI: We use SimpleStepper as pseudo-VPN to production environment.
+FYI: We use SimpleStepper as pseudo-VPN on production environment.
 Our verification is by client certification on Nginx.
 So we make Nginx reverse proxy.
 
